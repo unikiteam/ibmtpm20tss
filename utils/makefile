@@ -44,7 +44,7 @@ CC = /usr/bin/gcc
 
 # compile - common flags for TSS library and applications
 
-CCFLAGS += 	-DTPM_POSIX
+CCFLAGS += 	-DTPM_POSIX -DTPM_POSIX -DTPM_INTERFACE_TYPE_DEFAULT="\"dev\"" -DTPM_ENCRYPT_SESSIONS_DEFAULT="\"0\""
 
 # example of pointing to a locally built openssl 1.1
 # CCFLAGS += 	-I/home/kgold/openssl-1.1.0c/include
@@ -87,7 +87,7 @@ LNFLAGS += 	-DTPM_POSIX		\
 # link - for TSS library
 
 # hardening flags for linking shared objects
-LNLFLAGS += -shared -Wl,-z,now
+LNLFLAGS +=
 
 # This is an alternative to using the bfd linker on Ubuntu
 LNLLIBS += -lcrypto
@@ -95,19 +95,19 @@ LNLLIBS += -lcrypto
 # link - for applications, TSS path, TSS and OpenSSl libraries
 
 # hardening flags for linking executables
-LNAFLAGS += -pie -Wl,-z,now -Wl,-rpath,.
+LNAFLAGS += -pie -Wl,-rpath,.
 
 LNALIBS +=  -ltss -lcrypto
 
 # shared library
 
 # versioned shared library
-LIBTSSVERSIONED=libtss.so.0.1
+LIBTSSVERSIONED=libtss.a.0.1
 
 # soname field of the shared library
 # which will be made symbolic link to the versioned shared library
 # this is used to provide version backward-compatibility information
-LIBTSSSONAME=libtss.so.0
+LIBTSSSONAME=libtss.a.0
 
 # symbolic link to the versioned shared library
 # this allows linking to the shared library with '-ltss' 
@@ -116,7 +116,7 @@ os := $(shell uname -o)
 ifeq ($(os),Cygwin)
   LIBTSS=libtss.dll
 else
-  LIBTSS=libtss.so
+  LIBTSS=libtss.a
 endif
 
 # executable extension
@@ -187,7 +187,7 @@ tssntc.o:	$(TSS_HEADERS) tssntc.c
 # TSS shared library build
 
 $(LIBTSS): 	$(TSS_OBJS)
-		$(CC) $(LNFLAGS) $(LNLFLAGS) -Wl,-soname,$(LIBTSSSONAME) -o $(LIBTSSVERSIONED) $(TSS_OBJS) $(LNLLIBS)
+		ar rcs $(LIBTSSVERSIONED) $(TSS_OBJS)
 		rm -f $(LIBTSSSONAME)
 		ln -sf $(LIBTSSVERSIONED) $(LIBTSSSONAME)
 		rm -f $(LIBTSS)
